@@ -6,12 +6,20 @@ const (
   JSON_TYPE = "application/json"
 )
 
+type MegaRoot struct {}
+
+type MegaInfo struct {
+  Url string `json:"url"`
+  Name string `json:"name"`
+  Part uint `json:"part"`
+}
+
 type Mega struct {
-  Url string
-  FileName string
+  url, filename string
   id, key, iv []byte
   link string
   err error
+  done bool
 }
 
 type storageLinkRequest struct {
