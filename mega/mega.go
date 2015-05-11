@@ -10,9 +10,10 @@ func NewMega(url, file string) *Mega {
 }
 
 func (m *Mega) Download() {
-  if m.done || m.Error() != nil {
+  if m.done {
     return
   }
+  m.err = nil
   
   var f *os.File
   var r io.Reader
@@ -29,8 +30,9 @@ func (m *Mega) Download() {
       defer f.Close()
     case 3:
       r, c, m.err = requestStorageReader(m.key, m.iv, m.link)
-      defer c.Close()
     case 4:
+      defer c.Close()
+    case 5:
       _, m.err = io.Copy(f, r)
     default:
       m.done = true

@@ -47,14 +47,16 @@ func main() {
 
   for i := 0; i < MaxWorker; i++{
     go func(i int) {
-      fmt.Println("Process", i, "asking...")
-      t, ok := pool.Ask()
-      if ok {
-        fmt.Println("Process", i, "downloading...")
-        t.Download()
-        fmt.Println("Process", i, "reporting...")
-        pool.Report(t)
-        fmt.Println("Process", i, "done")
+      for {
+        fmt.Println("Process", i, "asking...")
+        t, ok := pool.Ask()
+        if ok {
+          fmt.Println("Process", i, "downloading...")
+          t.Download()
+          fmt.Println("Process", i, "reporting...")
+          pool.Report(t)
+          fmt.Println("Process", i, "done")
+        }
       }
     }(i)
   }

@@ -12,6 +12,7 @@ type TaskPool struct {
   parsers map[TaskGroupType]Parser
   askChannel chan Task
   reportChannel chan Task
+  isStart bool
 }
 
 type TaskGroup struct {

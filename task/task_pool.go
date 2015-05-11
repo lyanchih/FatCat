@@ -13,6 +13,7 @@ func CreatePool() (*TaskPool, error) {
     make(map[TaskGroupType]Parser, 1),
     make(chan Task, MaxTaskQueue),
     make(chan Task, MaxTaskQueue),
+    false,
   }, nil
 }
 
@@ -41,22 +42,30 @@ func (tp *TaskPool) Add(t TaskGroupType, name string, data []byte) (uint, error)
 }
 
 func (tp *TaskPool) Start() {
+  if tp.isStart {
+    return
+  }
+
   defer func() {
     recover()
+    tp.isStart = false
   }()
 
+  var t Task
   for {
-    if t, empty := tp.askTask(); empty {
+    if t.Tasker == nil {
       select {
-      case t = <- tp.reportChannel:
-        tp.reportTask(t)
+      case reportT := <- tp.reportChannel:
+        tp.reportTask(reportT)
       case <-time.Tick(5 * time.Second):
+        t = tp.askTask()
       } 
     } else {
       select {
-      case t = <- tp.reportChannel:
-        tp.reportTask(t)
+      case reportT := <- tp.reportChannel:
+        tp.reportTask(reportT)
       case tp.askChannel <- t:
+        t = tp.askTask()
       }
     }
   }
