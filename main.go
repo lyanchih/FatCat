@@ -11,11 +11,6 @@ import (
 
 const MaxWorker = 10
 
-// var sample []mega.MegaInfo = []mega.MegaInfo{
-//   {"https://mega.co.nz/#!sQ4HBA6a!md9EZHtkl_-A9hSJIy2KR4_4tFAZ_1p5dxhE2_KBcjE", "", 1},
-//   {"https://mega.co.nz/#!sQ4HBA6a!md9EZHtkl_-A9hSJIy2KR4_4tFAZ_1p5dxhE2_KBcjE", "", 2},
-// }
-
 func main() {
   if len(os.Args) == 0 {
     log.Fatal("Please offer json file.")

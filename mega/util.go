@@ -47,22 +47,29 @@ func parseKey(ks []byte) (key []byte, iv []byte, err error) {
   err = binary.Write(buf, binary.BigEndian, xor(is[0], is[1]))
   err = binary.Write(buf, binary.BigEndian, xor(is[2], is[3]))
   
-  return buf.Bytes(), append(ks[16:24], []byte{0,0,0,0,0,0,0,0}...), err
+  return buf.Bytes(), append(ks[16:24], bytes.Repeat([]byte{0}, 8)...), err
 }
 
+func base64Dec(src []byte) ([]byte, error) {
+  src = bytes.Replace(src, []byte(","), []byte(""), -1)
+  
+  if len(src) & 3 != 0 {
+    src = append(src, bytes.Repeat([]byte("="), 4 - (len(src) & 3))...)
+  }
+  dst := make([]byte, base64.URLEncoding.DecodedLen(len(src)))
+  _, err := base64.URLEncoding.Decode(dst, src)
+  if err != nil {
+    return dst, err
+  }
+  return bytes.Trim(dst, string([]byte{0})), nil
+}
 
 func parseUrl(url string) (id, key, iv []byte, err error) {
   arr := bytes.Split([]byte(url), []byte("!"))
   
   id = arr[1]
   
-  tmpKey := bytes.Replace(arr[2], []byte("-"), []byte("+"), -1)
-  tmpKey = bytes.Replace(tmpKey, []byte("_"), []byte("/"), -1)
-  tmpKey = bytes.Replace(tmpKey, []byte(","), []byte(""), -1)
-  tmpKey = append(tmpKey, []byte("=")...)
-  
-  dst := make([]byte, base64.URLEncoding.DecodedLen(len(tmpKey)))
-  _, err = base64.StdEncoding.Decode(dst, tmpKey)
+  dst, err := base64Dec(arr[2])
   if err != nil {
     return nil, nil, nil, err
   }

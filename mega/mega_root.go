@@ -3,12 +3,11 @@ package mega
 import (
   "../task"
   "fmt"
-  "sort"
   "encoding/json"
 )
 
 func (m MegaRoot) Parse(data []byte) (ms []task.Tasker, err error) {
-  var arr megaInfoArr
+  var arr []MegaInfo
   err = json.Unmarshal(data, &arr)
   if err != nil {
     return nil, err
@@ -16,30 +15,9 @@ func (m MegaRoot) Parse(data []byte) (ms []task.Tasker, err error) {
     return nil, fmt.Errorf("Data didn't contain any mega information.")
   }
   
-  sort.Sort(arr)
   ms = make([]task.Tasker, 0, len(arr))
-  for i, m := range arr {
-    if m.Part == 0 {
-      m.Part = uint(i) + 1
-    }
-    if m.Name == "" {
-      m.Name = fmt.Sprintf("part%d", i+1)
-    }
-    ms = append(ms, NewMega(m.Url, m.Name))
+  for _, m := range arr {
+    ms = append(ms, &Mega{url:m.Url})
   }
   return ms, nil
-}
-
-type megaInfoArr []MegaInfo
-
-func (arr megaInfoArr) Len() int {
-  return len(arr)
-}
-
-func (arr megaInfoArr) Swap(i, j int) {
-  arr[i].Url, arr[i].Name, arr[j].Url, arr[j].Name = arr[j].Url, arr[j].Name, arr[i].Url, arr[i].Name
-}
-
-func (arr megaInfoArr) Less(i, j int) bool {
-  return arr[i].Part > arr[j].Part
 }

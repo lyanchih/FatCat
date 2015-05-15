@@ -2,34 +2,61 @@ package mega
 
 import (
   "io"
-  "errors"
+  "fmt"
+  "bytes"
   "net/http"
   "crypto/aes"
   "crypto/cipher"
+  "encoding/json"
 )
 
-func requestStorageLink(id string) (string, error) {
-  r, err := structToReader([]storageLinkRequest{storageLinkRequest{"g", 1, id}})
+var nullIV []byte = bytes.Repeat([]byte{0}, 16)
+
+func parseNodeName(at, key, iv []byte) (string, error) {
+  block, err := aes.NewCipher(key)
   if err != nil {
     return "", err
   }
-  r, err = structToReader([]storageLinkRequest{storageLinkRequest{"g", 1, id}})
+
+  dst, err := base64Dec(at)
+  if err != nil {
+    return "", err
+  }
+  
+  mode := cipher.NewCBCDecrypter(block, nullIV)
+  data := make([]byte, len(dst))
+  mode.CryptBlocks(data, dst)
+
+  var node *megaNode
+  err = json.Unmarshal(bytes.Trim(data[4:], string([]byte{0})), &node)
+  if err != nil {
+    fmt.Println(err)
+    return "", err
+  }
+  return node.N, nil
+}
+
+func requestStorageLink(key, id []byte) (storageLinkResponse, error) {
+  r, err := structToReader([]storageLinkRequest{storageLinkRequest{"g", 1, string(id)}})
+  if err != nil {
+    return storageLinkResponse{}, err
+  }
   
   resp, err := http.Post(LINK_API, JSON_TYPE, r)
   if err != nil {
-    return "", err
+    return storageLinkResponse{}, err
   }
   defer resp.Body.Close()
   
   var link []storageLinkResponse
   err = readerToStruct(resp.Body, &link)
   if err != nil {
-    return "", err
+    return storageLinkResponse{}, err
   } else if len(link) < 1 {
-    return "", errors.New("Response of storage link don't have any object")
+    return storageLinkResponse{}, fmt.Errorf("Response of storage link don't have any object")
   }
   
-  return link[0].G, nil
+  return link[0], nil
 }
 
 func requestStorageReader(key, iv []byte, link string) (io.Reader, io.Closer, error) {

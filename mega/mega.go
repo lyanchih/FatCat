@@ -18,15 +18,27 @@ func (m *Mega) Download() {
   var f *os.File
   var r io.Reader
   var c io.Closer
+  var link storageLinkResponse
 
   for a := 0; m.err == nil; a++ {
     switch a {
     case 0:
+      if m.id != nil && m.key != nil && m.iv != nil {
+        continue
+      }
       m.id, m.key, m.iv, m.err = parseUrl(m.url)
     case 1:
-      m.link, m.err = requestStorageLink(string(m.id))
+      if m.link != "" {
+        continue
+      }
+      if link, m.err = requestStorageLink(m.key, m.id); m.err == nil {
+        m.link = link.G
+        if m.name, m.err = parseNodeName([]byte(link.At), m.key, m.iv); m.err != nil || m.name == "" {
+          m.name, m.err = string(m.id), nil
+        }
+      }
     case 2:
-      f, m.err = os.OpenFile(m.filename, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0644)
+      f, m.err = os.OpenFile(m.name, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0644)
       defer f.Close()
     case 3:
       r, c, m.err = requestStorageReader(m.key, m.iv, m.link)
@@ -46,5 +58,5 @@ func (m *Mega) Error() error {
 }
 
 func (m *Mega) Name() string {
-  return m.filename
+  return m.name
 }

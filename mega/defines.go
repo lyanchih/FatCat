@@ -10,12 +10,10 @@ type MegaRoot struct {}
 
 type MegaInfo struct {
   Url string `json:"url"`
-  Name string `json:"name"`
-  Part uint `json:"part"`
 }
 
 type Mega struct {
-  url, filename string
+  url, name string
   id, key, iv []byte
   link string
   err error
@@ -32,4 +30,9 @@ type storageLinkResponse struct {
   S int `json:"s"`
   At string `json:"at"`
   G string `json:"g"`
+}
+
+type megaNode struct {
+  N string `json:"n"`
+  C string `json:"c"`
 }
