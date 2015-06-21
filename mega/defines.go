@@ -8,9 +8,7 @@ const (
 
 type MegaRoot struct {}
 
-type MegaInfo struct {
-  Url string `json:"url"`
-}
+type MegaInfo string
 
 type Mega struct {
   url, name string

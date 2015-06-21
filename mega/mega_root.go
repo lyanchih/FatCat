@@ -17,7 +17,7 @@ func (m MegaRoot) Parse(data []byte) (ms []task.Tasker, err error) {
   
   ms = make([]task.Tasker, 0, len(arr))
   for _, m := range arr {
-    ms = append(ms, &Mega{url:m.Url})
+    ms = append(ms, &Mega{url:string(m)})
   }
   return ms, nil
 }
