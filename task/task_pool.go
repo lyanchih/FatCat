@@ -81,6 +81,27 @@ func (tp *TaskPool) Ask() (Task, bool) {
   return t, ok
 }
 
+func (tp *TaskPool) UnblockAsk() (Task, bool) {
+  select {
+  case t, ok := <- tp.askChannel:
+    return t, ok
+  default:
+  }
+  return Task{}, false
+}
+
+func (tp *TaskPool) AskFor(duration time.Duration) (Task, bool) {
+  if duration <= 0 {
+    return tp.Ask()
+  }
+  select {
+  case t, ok := <- tp.askChannel:
+    return t, ok
+  case <- time.After(duration):
+  }
+  return Task{}, false
+}
+
 func (tp *TaskPool) Report(t Task) {
   if tp.reportChannel == nil {
     return
