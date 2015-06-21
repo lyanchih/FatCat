@@ -6,10 +6,15 @@ import (
   "os"
   "fmt"
   "log"
+  "runtime"
   "io/ioutil"
 )
 
-const MaxWorker = 10
+var MaxWorker int
+
+func init() {
+  MaxWorker = runtime.NumCPU() << 1
+}
 
 func main() {
   if len(os.Args) == 0 {
