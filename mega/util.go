@@ -61,7 +61,7 @@ func base64Dec(src []byte) ([]byte, error) {
   if err != nil {
     return dst, err
   }
-  return bytes.Trim(dst, string([]byte{0})), nil
+  return dst, nil
 }
 
 func parseUrl(url string) (id, key, iv []byte, err error) {
@@ -73,6 +73,8 @@ func parseUrl(url string) (id, key, iv []byte, err error) {
   if err != nil {
     return nil, nil, nil, err
   }
+
+  dst = bytes.Trim(dst, string([]byte{0}))
   
   key, iv, err = parseKey(dst)
   return

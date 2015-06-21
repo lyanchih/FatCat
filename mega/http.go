@@ -21,6 +21,10 @@ func parseNodeName(at, key, iv []byte) (string, error) {
   dst, err := base64Dec(at)
   if err != nil {
     return "", err
+  } else if len(dst) % block.BlockSize() != 0 {
+    s := len(dst)
+    bs := block.BlockSize()
+    dst = dst[0:(bs * int(s / bs))]
   }
   
   mode := cipher.NewCBCDecrypter(block, nullIV)
@@ -30,7 +34,6 @@ func parseNodeName(at, key, iv []byte) (string, error) {
   var node *megaNode
   err = json.Unmarshal(bytes.Trim(data[4:], string([]byte{0})), &node)
   if err != nil {
-    fmt.Println(err)
     return "", err
   }
   return node.N, nil
