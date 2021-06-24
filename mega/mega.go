@@ -3,6 +3,7 @@ package mega
 import (
   "io"
   "os"
+  "fmt"
 )
 
 func NewMega(url, file string) *Mega {
@@ -38,6 +39,10 @@ func (m *Mega) Download() {
         }
       }
     case 2:
+      if _, err := os.Stat(m.name); err == nil {
+        m.err = fmt.Errorf("File %s already exist", m.name)
+        continue
+      }
       f, m.err = os.OpenFile(m.name, os.O_WRONLY | os.O_CREATE | os.O_TRUNC, 0644)
       defer f.Close()
     case 3:

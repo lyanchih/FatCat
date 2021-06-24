@@ -5,6 +5,7 @@ import (
   "io/ioutil"
   "bytes"
   "math/big"
+  "net/url"
   "encoding/json"
   "encoding/base64"
   "encoding/binary"
@@ -64,11 +65,11 @@ func base64Dec(src []byte) ([]byte, error) {
   return dst, nil
 }
 
-func parseUrl(url string) (id, key, iv []byte, err error) {
+func parseOldUrl(url string) (id, key, iv []byte, err error) {
   arr := bytes.Split([]byte(url), []byte("!"))
   
   id = arr[1]
-  
+
   dst, err := base64Dec(arr[2])
   if err != nil {
     return nil, nil, nil, err
@@ -78,6 +79,33 @@ func parseUrl(url string) (id, key, iv []byte, err error) {
   
   key, iv, err = parseKey(dst)
   return
+}
+
+func parseNewUrl(_url string) (id, key, iv []byte, err error) {
+  u, err := url.Parse(_url)
+  if err != nil {
+    return nil, nil, nil, err
+  }
+
+  arr := bytes.Split([]byte(u.Path), []byte("/"))
+
+  id = arr[len(arr)-1]
+
+  dst, err := base64Dec([]byte(u.Fragment))
+  if err != nil {
+    return nil, nil, nil, err
+  }
+
+  key, iv, err = parseKey(dst)
+  return
+}
+
+func parseUrl(url string) (id, key, iv []byte, err error) {
+  if len(bytes.Split([]byte(url), []byte("!"))) > 2 {
+    return parseOldUrl(url)
+  }
+
+  return parseNewUrl(url)
 }
 
 func structToReader(i interface{}) (io.Reader, error) {
